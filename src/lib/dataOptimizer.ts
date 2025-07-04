@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+// Use the same fallback values as in supabaseClient.ts
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://yrppmcoycmydrujbesnd.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlycHBtY295Y215ZHJ1amJlc25kIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTk5NjU3MjYsImV4cCI6MjAxNTU0MTcyNn0.kpS1nRRPMdAgG8J9vkgyhIOO2GdXU23P9GnxJCsXGGE';
 
+// Create client with graceful error handling
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Cache interface
@@ -59,9 +61,12 @@ class DataCache {
   // Start periodic cleanup
   private startCleanupInterval(): void {
     // Run cleanup every minute
-    this.cleanupInterval = window.setInterval(() => {
-      this.cleanupExpiredEntries();
-    }, 60 * 1000);
+    // Check if window exists (browser environment) to avoid SSR issues
+    if (typeof window !== 'undefined') {
+      this.cleanupInterval = window.setInterval(() => {
+        this.cleanupExpiredEntries();
+      }, 60 * 1000);
+    }
   }
   
   // Stop cleanup interval when not needed
