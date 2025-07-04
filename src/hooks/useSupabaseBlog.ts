@@ -13,6 +13,8 @@ export const useSupabaseBlog = (limit?: number): UseBlogReturn => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchPosts = async () => {
       try {
         setLoading(true);
@@ -28,6 +30,8 @@ export const useSupabaseBlog = (limit?: number): UseBlogReturn => {
         }
 
         const { data, error } = await query;
+        
+        if (!isMounted) return;
 
         if (error) {
           console.error('Error fetching blog posts:', error);
@@ -36,14 +40,22 @@ export const useSupabaseBlog = (limit?: number): UseBlogReturn => {
           setPosts(data || []);
         }
       } catch (err) {
+        if (!isMounted) return;
         console.error('Unexpected error:', err);
         setError('An unexpected error occurred');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchPosts();
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMounted = false;
+    };
   }, [limit]);
 
   return { posts, loading, error };
