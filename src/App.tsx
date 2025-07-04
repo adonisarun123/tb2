@@ -17,7 +17,8 @@ import { useConditionalPreload, LazyAIRecommendations, LazyAIChatbot, LazySmartF
 function App() {
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const [homepageData, setHomepageData] = useState<any>(null);
+  // Using underscore prefix to indicate intentionally unused variable
+  const [_homepageData, setHomepageData] = useState<any>(null);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   
