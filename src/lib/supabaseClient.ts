@@ -1,15 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Use provided Supabase credentials with Vite environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Adding fallback values for deployment environments where env vars might not be accessible
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://yrppmcoycmydrujbesnd.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlycHBtY295Y215ZHJ1amJlc25kIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTk5NjU3MjYsImV4cCI6MjAxNTU0MTcyNn0.kpS1nRRPMdAgG8J9vkgyhIOO2GdXU23P9GnxJCsXGGE';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase credentials. Please check your environment variables.');
+// Log a warning if the environment variables are missing
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.warn('Using fallback Supabase credentials. Consider adding proper environment variables for production.');
 }
 
-// Create Supabase client
+// Create Supabase client with graceful error handling
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Test the connection
+supabase.auth.getSession().catch(err => {
+  console.error('Supabase connection error:', err);
+});
 
 export { supabase };
 
