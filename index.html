@@ -518,6 +518,47 @@
       }
     </script>
     
+    <!-- Global error handler to prevent complete app crashes -->
+    <script>
+      // Add global error handler to prevent blank screen on errors
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error('Unhandled error:', { message, source, lineno, colno, error });
+        
+        // Create an error log element if the app crashes
+        if (document.getElementById('root') && !document.getElementById('error-log')) {
+          const errorDiv = document.createElement('div');
+          errorDiv.id = 'error-log';
+          errorDiv.style.position = 'fixed';
+          errorDiv.style.top = '0';
+          errorDiv.style.left = '0';
+          errorDiv.style.right = '0';
+          errorDiv.style.padding = '20px';
+          errorDiv.style.background = '#f8d7da';
+          errorDiv.style.color = '#721c24';
+          errorDiv.style.borderBottom = '1px solid #f5c6cb';
+          errorDiv.style.zIndex = '9999';
+          errorDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+          errorDiv.style.fontSize = '14px';
+          
+          errorDiv.innerHTML = `
+            <h3 style="margin: 0 0 10px 0; font-size: 16px;">Application Error</h3>
+            <p>${message || 'Unknown error occurred'}</p>
+            <button onclick="window.location.reload()" style="padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; margin-top: 10px; cursor: pointer;">Reload Page</button>
+          `;
+          
+          document.body.appendChild(errorDiv);
+        }
+        
+        return true; // Prevents the default error handling
+      };
+      
+      // Handle unhandled promise rejections
+      window.onunhandledrejection = function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+        window.onerror('Promise error: ' + (event.reason?.message || 'Unknown promise error'), 'promise', 0, 0, event.reason);
+      };
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
