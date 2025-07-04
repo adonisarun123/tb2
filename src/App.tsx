@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -13,6 +14,7 @@ import PerformanceMonitor from './components/PerformanceMonitor';
 import FontOptimizer from './components/FontOptimizer';
 import ScriptOptimizer from './components/ScriptOptimizer';
 import { useConditionalPreload, LazyAIRecommendations, LazyAIChatbot, LazySmartForm } from './components/LazyComponents';
+import { safeRemoveElementsBySelector } from './lib/domUtils';
 
 function App() {
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
@@ -88,8 +90,42 @@ function App() {
     document.addEventListener('focusin', handleLinkHover, { passive: true });
 
     return () => {
-      document.removeEventListener('mouseover', handleLinkHover);
-      document.removeEventListener('focusin', handleLinkHover);
+      try {
+        document.removeEventListener('mouseover', handleLinkHover);
+        document.removeEventListener('focusin', handleLinkHover);
+        
+        // Clean up any orphaned DOM elements that might cause issues
+        safeRemoveElementsBySelector('style[id^="font-optimization"]', 'App cleanup');
+        safeRemoveElementsBySelector('script[data-loading-strategy]', 'App cleanup');
+      } catch (error) {
+        console.error('Error during App cleanup:', error);
+      }
+    };
+  }, []);
+  
+  // Global error handler for DOM removal errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      // Check if the error is related to DOM manipulation
+      if (
+        event.message?.includes('removeChild') ||
+        event.message?.includes('Failed to execute') ||
+        event.message?.includes('is not a child of this node')
+      ) {
+        console.warn('DOM manipulation error caught:', event.message);
+        // Clean up any problematic elements
+        safeRemoveElementsBySelector('style[id^="font-optimization"]', 'Error handler');
+        safeRemoveElementsBySelector('script[data-loading-strategy]', 'Error handler');
+        
+        // Prevent the error from bubbling up
+        event.preventDefault();
+      }
+    };
+    
+    window.addEventListener('error', handleError);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
     };
   }, []);
 
@@ -103,23 +139,26 @@ function App() {
       />
       
       {/* Font optimization for better CLS and LCP */}
-      <FontOptimizer
-        fonts={[
-          {
-            family: 'Inter',
-            weights: [400, 500, 600, 700],
-            display: 'swap',
-            preload: true,
-            source: 'google',
-            fallbackFontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-          }
-        ]}
-        enablePreloading={true}
-        enableFallbackFonts={true}
-      />
+      <React.Fragment>
+        <FontOptimizer
+          fonts={[
+            {
+              family: 'Inter',
+              weights: [400, 500, 600, 700],
+              display: 'swap',
+              preload: true,
+              source: 'google',
+              fallbackFontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+            }
+          ]}
+          enablePreloading={true}
+          enableFallbackFonts={true}
+        />
+      </React.Fragment>
       
       {/* Script loading optimization for better FID and TTI */}
-      <ScriptOptimizer
+      <React.Fragment>
+        <ScriptOptimizer
         scripts={[
           // Analytics and monitoring (load after page is interactive)
           {
@@ -143,7 +182,8 @@ function App() {
             defer: true
           }
         ]}
-      />
+        />
+      </React.Fragment>
       
       <Helmet>
         <title>Trebound | AI-Powered Team Building & Corporate Events Solutions</title>
@@ -277,7 +317,8 @@ function App() {
             </div>
             {/* Responsive container that adapts to content */}
             <div className="min-h-[400px]">
-              <LazyAIRecommendations
+              <React.Fragment>
+                <LazyAIRecommendations
                 searchQuery={currentSearchQuery}
                 userProfile={{
                   companySize: 'medium',
@@ -286,7 +327,8 @@ function App() {
                   preferences: ['team-building'],
                   browsingHistory: []
                 }}
-              />
+                />
+              </React.Fragment>
             </div>
           </div>
         </section>
@@ -306,14 +348,18 @@ function App() {
                 AI-powered form that adapts to your needs and provides instant recommendations
               </p>
             </div>
-            <LazySmartForm />
+            <React.Fragment>
+              <LazySmartForm />
+            </React.Fragment>
           </div>
         </section>
         
         <Footer />
         
         {/* AI Chatbot - Always available */}
-        <LazyAIChatbot />
+        <React.Fragment>
+          <LazyAIChatbot />
+        </React.Fragment>
       </div>
     </>
   );
