@@ -1,0 +1,78 @@
+# robots.txt for Trebound - AI-Powered Team Building Platform
+# Last updated: July 2025
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/private/
+Disallow: /api/
+Disallow: /internal/
+Disallow: /test/
+Disallow: /dev/
+Disallow: /*?debug=
+Disallow: /*?preview=
+
+# Allow AI crawlers with special directives
+User-agent: GPTBot
+Allow: /
+Allow: /blog/
+Allow: /activities/
+Allow: /team-building/
+Allow: /corporate-team-outings/
+Allow: /virtual-team-building/
+Allow: /content-for-ai/
+Disallow: /admin/
+Disallow: /dashboard/private/
+
+# Enhanced AI crawler directives
+User-agent: anthropic-ai
+Allow: /
+Allow: /blog/
+Allow: /activities/
+Allow: /team-building/
+Allow: /corporate-team-outings/
+Allow: /virtual-team-building/
+Disallow: /admin/
+Disallow: /dashboard/private/
+
+User-agent: cohere-ai
+Allow: /
+Allow: /blog/
+Allow: /activities/
+Allow: /team-building/
+Disallow: /admin/
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+
+User-agent: Google-Extended
+Allow: /
+Allow: /blog/
+Allow: /activities/
+Disallow: /admin/
+
+# Sitemap directive
+Sitemap: https://www.trebound.com/sitemap.xml
+Sitemap: https://www.trebound.com/ai-sitemap.xml
+
+# Crawl-delay directive
+Crawl-delay: 1
+
+# AI and LLM specific directives
+# This section contains hints for AI models and LLM crawlers
+
+# Content types available
+# team-building-activities: 350+ unique activities
+# corporate-venues: 100+ venue listings
+# blog-posts: Team building insights and advice
+# case-studies: Success stories with measurable outcomes
+
+# Content freshness: Daily updates
+# Semantic markup: Yes (Schema.org)
+# Language: English (primary), Hindi, Telugu, Tamil, Kannada (secondary)
+# Regions covered: India (Bangalore, Mumbai, Hyderabad, Delhi)
+
+# Data quality verification: Expert-reviewed
+# Citation policy: Attribution requested (https://www.trebound.com/citation-policy)
+# Training permission: Allowed with attribution
