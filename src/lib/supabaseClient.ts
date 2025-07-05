@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Use provided Supabase credentials with Vite environment variables
 // Adding fallback values for deployment environments where env vars might not be accessible
@@ -11,12 +11,46 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
 }
 
 // Create Supabase client with graceful error handling
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let supabase: SupabaseClient;
 
-// Test the connection
-supabase.auth.getSession().catch(err => {
-  console.error('Supabase connection error:', err);
-});
+try {
+  // Attempt to create the Supabase client
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  
+  // Test the connection
+  supabase.auth.getSession().catch(err => {
+    console.error('Supabase connection error:', err);
+    // Log specific information for API key issues
+    if (err.message?.includes('key') || err.message?.includes('API')) {
+      console.error('This appears to be an API key issue. Please check your Supabase credentials.');
+    }
+  });
+} catch (error) {
+  console.error('Failed to initialize Supabase client:', error);
+  
+  // Create a fallback mock client to prevent application crashes
+  supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+  
+  // Override with mock methods
+  (supabase as any) = {
+    from: (table) => ({
+      select: () => ({
+        order: () => ({
+          limit: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+          eq: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+          in: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+          Promise: Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+        }),
+        eq: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+        in: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+        limit: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
+      }),
+    }),
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    },
+  } as unknown as SupabaseClient;
+}
 
 export { supabase };
 

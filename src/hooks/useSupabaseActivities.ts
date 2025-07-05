@@ -35,7 +35,33 @@ export const useSupabaseActivities = (limit?: number): UseActivitiesReturn => {
         
         if (error) {
           console.error('Error fetching activities:', error);
-          setError(error.message);
+          
+          // Provide more specific error messages for common issues
+          if (error.message?.includes('key') || error.message?.includes('API')) {
+            setError('Error loading activities: Invalid API key. Please check your environment configuration.');
+            
+            // Provide fallback data for development
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Using fallback activities data for development');
+              setActivities([
+                {
+                  id: 1,
+                  name: 'Demo Activity 1',
+                  tagline: 'This is a fallback activity due to API key issue',
+                  description: 'Fallback activity description',
+                  main_image: '/images/activity2.jpg',
+                  activity_type: 'virtual',
+                  group_size: '10-50',
+                  duration: '2-3 hours',
+                  slug: 'demo-activity-1',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                }
+              ]);
+            }
+          } else {
+            setError(error.message);
+          }
         } else {
           setActivities(data || []);
         }
