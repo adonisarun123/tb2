@@ -16,8 +16,15 @@ const TestimonialsSection = () => {
     document.body.appendChild(script);
 
     return () => {
-      // Cleanup on unmount
-      document.body.removeChild(script);
+      // Cleanup on unmount with safety checks
+      try {
+        if (script && script.parentNode === document.body) {
+          document.body.removeChild(script);
+        }
+      } catch (error) {
+        // Silently handle DOM manipulation errors
+        console.warn('Failed to remove script element:', error);
+      }
     };
   }, []);
 
