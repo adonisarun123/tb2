@@ -33,7 +33,8 @@ try {
   
   // Override with mock methods
   (supabase as any) = {
-    from: (table: string) => ({
+    // Use _table with underscore prefix to indicate intentionally unused parameter
+    from: (_table: string) => ({
       select: () => ({
         order: () => ({
           limit: () => Promise.resolve({ data: [], error: { message: 'Invalid API key - using mock client' } }),
