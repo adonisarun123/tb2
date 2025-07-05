@@ -34,6 +34,7 @@ try {
   // Override with mock methods
   (supabase as any) = {
     // Use _table with underscore prefix to indicate intentionally unused parameter
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     from: (_table: string) => ({
       select: () => ({
         order: () => ({
