@@ -103,29 +103,57 @@ function App() {
     };
   }, []);
   
-  // Global error handler for DOM removal errors
+  // Comprehensive global error handler for DOM removal errors
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       // Check if the error is related to DOM manipulation
       if (
         event.message?.includes('removeChild') ||
         event.message?.includes('Failed to execute') ||
-        event.message?.includes('is not a child of this node')
+        event.message?.includes('is not a child of this node') ||
+        event.message?.includes('NotFoundError') ||
+        event.message?.includes('remove()')
       ) {
-        console.warn('DOM manipulation error caught:', event.message);
-        // Clean up any problematic elements
-        safeRemoveElementsBySelector('style[id^="font-optimization"]', 'Error handler');
-        safeRemoveElementsBySelector('script[data-loading-strategy]', 'Error handler');
+        console.warn('DOM manipulation error caught and prevented:', event.message);
         
-        // Prevent the error from bubbling up
+        // Try to clean up any potentially problematic elements
+        try {
+          safeRemoveElementsBySelector('style[id^="font-optimization"]', 'Error handler');
+          safeRemoveElementsBySelector('script[data-loading-strategy]', 'Error handler');
+          safeRemoveElementsBySelector('.lazy-component-placeholder', 'Error handler');
+          safeRemoveElementsBySelector('[data-remove-if-unused]', 'Error handler');
+        } catch (cleanupError) {
+          console.warn('Error during cleanup:', cleanupError);
+        }
+        
+        // Prevent the error from bubbling up and crashing the app
         event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
+    };
+
+    // Enhanced error handler for unhandled promise rejections
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const error = event.reason;
+      if (
+        error?.message?.includes('removeChild') ||
+        error?.message?.includes('Failed to execute') ||
+        error?.message?.includes('is not a child of this node') ||
+        error?.message?.includes('NotFoundError')
+      ) {
+        console.warn('Promise rejection for DOM error caught and prevented:', error.message);
+        event.preventDefault();
+        return false;
       }
     };
     
     window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
     return () => {
       window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
@@ -138,7 +166,8 @@ function App() {
         enableMetrics={true}
       />
       
-      {/* Font optimization for better CLS and LCP */}
+      {/* Font optimization temporarily disabled to prevent DOM errors */}
+      {/* 
       <React.Fragment>
         <FontOptimizer
           fonts={[
@@ -155,8 +184,10 @@ function App() {
           enableFallbackFonts={true}
         />
       </React.Fragment>
+      */}
       
-      {/* Script loading optimization for better FID and TTI */}
+      {/* Script loading optimization temporarily disabled to prevent DOM errors */}
+      {/*
       <React.Fragment>
         <ScriptOptimizer
         scripts={[
@@ -184,6 +215,7 @@ function App() {
         ]}
         />
       </React.Fragment>
+      */}
       
       <Helmet>
         <title>Trebound | AI-Powered Team Building & Corporate Events Solutions</title>

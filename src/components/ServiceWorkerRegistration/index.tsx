@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { safeRemoveElement } from '../../lib/domUtils';
 
 const ServiceWorkerRegistration = () => {
   useEffect(() => {
@@ -79,7 +80,7 @@ const ServiceWorkerRegistration = () => {
       if (notification.parentNode) {
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
-          notification.remove();
+          safeRemoveElement(notification, 'service worker notification cleanup');
         }, 300);
       }
     }, 10000);
