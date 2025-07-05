@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { safeRemoveElement } from '../../lib/domUtils';
 
 interface PerformanceMetrics {
   fcp: number | null;
@@ -249,19 +250,19 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   const optimizeDOM = useCallback(() => {
     // Remove unused elements
     const removeUnusedElements = () => {
-      // Remove unused script tags
+      // Remove unused script tags safely
       const scripts = document.querySelectorAll('script[data-remove-if-unused]');
       scripts.forEach(script => {
         if (!script.getAttribute('data-used')) {
-          script.remove();
+          safeRemoveElement(script, 'unused script cleanup');
         }
       });
 
-      // Remove empty elements
+      // Remove empty elements safely
       const emptyElements = document.querySelectorAll('div:empty, span:empty, p:empty');
       emptyElements.forEach(element => {
         if (!element.hasAttribute('data-keep-empty')) {
-          element.remove();
+          safeRemoveElement(element, 'empty element cleanup');
         }
       });
     };
