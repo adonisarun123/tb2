@@ -11,8 +11,9 @@ import FeaturedBlog from './components/FeaturedBlog';
 import SchemaMarkup from './components/SchemaMarkup';
 import DataOptimizer from './lib/dataOptimizer';
 import PerformanceMonitor from './components/PerformanceMonitor';
-import FontOptimizer from './components/FontOptimizer';
-import ScriptOptimizer from './components/ScriptOptimizer';
+// Temporarily disabled to prevent DOM errors
+// import FontOptimizer from './components/FontOptimizer';
+// import ScriptOptimizer from './components/ScriptOptimizer';
 import { useConditionalPreload, LazyAIRecommendations, LazyAIChatbot, LazySmartForm } from './components/LazyComponents';
 import { safeRemoveElementsBySelector } from './lib/domUtils';
 
