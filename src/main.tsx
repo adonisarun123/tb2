@@ -108,6 +108,9 @@ const emotionCache = createCache({ key: 'css' });
 
 // Error Boundary to prevent the entire app from crashing
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null, errorInfo: ErrorInfo | null }> {
+  private originalConsoleError: typeof console.error;
+  private errorCleanupAttempted: boolean = false;
+  
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = {
@@ -115,20 +118,163 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
       error: null,
       errorInfo: null
     };
+    
+    // Store original console.error to restore later
+    this.originalConsoleError = console.error;
+    
+    // Add DOM error monitoring
+    this.monitorDOMErrors();
+  }
+  
+  monitorDOMErrors() {
+    // Override console.error to catch and handle DOM-related errors
+    console.error = (...args: any[]) => {
+      const errorString = args.join(' ');
+      
+      // Check if this is a DOM-related error we want to handle specially
+      if (
+        errorString.includes('removeChild') ||
+        errorString.includes('Failed to execute') ||
+        errorString.includes('is not a child of this node')
+      ) {
+        this.handleDOMError();
+        return; // Suppress error from console
+      }
+      
+      // Call original for other errors
+      this.originalConsoleError.apply(console, args);
+    };
+    
+    // Add global error handler
+    window.addEventListener('error', this.handleGlobalError);
+    window.addEventListener('unhandledrejection', this.handlePromiseRejection);
+  }
+  
+  handleGlobalError = (event: ErrorEvent) => {
+    if (
+      event.message?.includes('removeChild') ||
+      event.message?.includes('Failed to execute') ||
+      event.message?.includes('is not a child of this node')
+    ) {
+      this.handleDOMError();
+      event.preventDefault(); // Prevent default error handling
+      return false;
+    }
+    return true;
+  };
+  
+  handlePromiseRejection = (event: PromiseRejectionEvent) => {
+    if (
+      event.reason?.toString().includes('removeChild') ||
+      event.reason?.toString().includes('Failed to execute') ||
+      event.reason?.toString().includes('is not a child of this node')
+    ) {
+      this.handleDOMError();
+      event.preventDefault();
+    }
+  };
+  
+  handleDOMError = () => {
+    if (this.errorCleanupAttempted) return; // Only try cleanup once
+    
+    this.errorCleanupAttempted = true;
+    
+    try {
+      // Clean up any potentially problematic elements
+      this.cleanupDOMElements();
+    } catch (e) {
+      // Silent catch - we don't want errors in our error handler
+    }
+  };
+  
+  cleanupDOMElements() {
+    try {
+      // Clean up font optimization styles
+      const fontStyles = document.querySelectorAll('style[id^="font-optimization"]');
+      fontStyles.forEach(el => {
+        if (el.parentNode) {
+          try {
+            el.parentNode.removeChild(el);
+          } catch (e) {
+            // Silent catch
+          }
+        }
+      });
+      
+      // Clean up script elements with data-loading-strategy
+      const scriptElements = document.querySelectorAll('script[data-loading-strategy]');
+      scriptElements.forEach(el => {
+        if (el.parentNode) {
+          try {
+            el.parentNode.removeChild(el);
+          } catch (e) {
+            // Silent catch
+          }
+        }
+      });
+      
+      // Remove placeholder elements
+      const placeholders = document.querySelectorAll('.lazy-component-placeholder');
+      placeholders.forEach(el => {
+        if (el.parentNode) {
+          try {
+            el.parentNode.removeChild(el);
+          } catch (e) {
+            // Silent catch
+          }
+        }
+      });
+    } catch (e) {
+      // Silent catch
+    }
   }
 
   static getDerivedStateFromError(error: Error) {
-    // Update state so the next render will show the fallback UI
+    // If this is a DOM removal error, we want to try to recover without showing the error
+    if (
+      error.message.includes('removeChild') ||
+      error.message.includes('Failed to execute') ||
+      error.message.includes('is not a child of this node')
+    ) {
+      return { hasError: false, error };
+    }
+    
+    // For other errors, show the fallback UI
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log the error to an error reporting service
-    console.error('React Error Boundary caught an error:', error, errorInfo);
+    // Log non-DOM errors to console
+    if (
+      !error.message.includes('removeChild') &&
+      !error.message.includes('Failed to execute') &&
+      !error.message.includes('is not a child of this node')
+    ) {
+      this.originalConsoleError('React Error Boundary caught an error:', error, errorInfo);
+    }
+    
     this.setState({
       error,
       errorInfo
     });
+    
+    // For DOM errors, attempt cleanup
+    if (
+      error.message.includes('removeChild') ||
+      error.message.includes('Failed to execute') ||
+      error.message.includes('is not a child of this node')
+    ) {
+      this.handleDOMError();
+    }
+  }
+  
+  componentWillUnmount() {
+    // Restore original console.error
+    console.error = this.originalConsoleError;
+    
+    // Remove global handlers
+    window.removeEventListener('error', this.handleGlobalError);
+    window.removeEventListener('unhandledrejection', this.handlePromiseRejection);
   }
 
   render() {
