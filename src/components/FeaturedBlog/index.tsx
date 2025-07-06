@@ -4,7 +4,7 @@ import { useSupabaseBlog } from '../../hooks/useSupabaseBlog';
 
 const FeaturedBlog: React.FC = () => {
   const navigate = useNavigate();
-  const { posts, loading, error } = useSupabaseBlog();
+  const { blogPosts, loading, error } = useSupabaseBlog();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   if (loading) {
@@ -34,8 +34,8 @@ const FeaturedBlog: React.FC = () => {
 
   const categories = ['all', 'team building', 'leadership', 'corporate events', 'tips'];
   const filteredPosts = selectedCategory === 'all' 
-    ? posts.slice(0, 6) 
-    : posts.filter(post => 
+    ? blogPosts.slice(0, 6) 
+    : blogPosts.filter((post: any) => 
         post.name?.toLowerCase().includes(selectedCategory) || 
         post.small_description?.toLowerCase().includes(selectedCategory)
       ).slice(0, 6);
@@ -122,7 +122,7 @@ const FeaturedBlog: React.FC = () => {
               </div>
               <div className="flex items-center">
                 <span className="text-blue-500 mr-2">📖</span>
-                <span className="font-semibold">{posts.length}+ articles published</span>
+                <span className="font-semibold">{blogPosts.length}+ articles published</span>
               </div>
               <div className="flex items-center">
                 <span className="text-green-500 mr-2">🔄</span>
@@ -352,7 +352,7 @@ const FeaturedBlog: React.FC = () => {
             onClick={handleViewAllClick}
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-12 rounded-2xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            View All {posts.length}+ Articles
+            View All {blogPosts.length}+ Articles
           </button>
           <p className="text-gray-500 mt-4">
             📝 New articles published weekly • 🎯 Expert insights & practical tips

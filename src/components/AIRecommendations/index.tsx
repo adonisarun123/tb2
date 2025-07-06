@@ -11,7 +11,9 @@ import {
   FiLayers
 } from 'react-icons/fi';
 import { generateAIResponse } from '../../lib/openaiClient';
-import { supabase, Activity, Stay, Destination } from '../../lib/supabaseClient';
+import { Activity, Stay, Destination } from '../../lib/supabaseClient';
+import { useSupabaseActivities } from '../../hooks/useSupabaseActivities';
+import { useSupabaseStays } from '../../hooks/useSupabaseStays';
 import LazyImage from '../LazyImage';
 
 interface AIRecommendation {
@@ -60,6 +62,50 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
   const [activeCategory, setActiveCategory] = useState<'all' | 'personalized' | 'trending' | 'similar' | 'popular'>('all');
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
 
+  // Use the fallback hooks instead of direct API calls
+  const { activities, loading: activitiesLoading } = useSupabaseActivities(50);
+  const { stays, loading: staysLoading } = useSupabaseStays(30);
+  
+  // Mock destinations data since we don't have a hook for it
+  const destinations: Destination[] = [
+    {
+      id: '1',
+      name: 'Goa Beach Retreat',
+      description: 'Beautiful coastal destination perfect for team retreats with beaches and modern facilities',
+      destination_description: 'Beautiful coastal destination perfect for team retreats with beaches and modern facilities',
+      region: 'Goa',
+      slug: 'goa-beach-retreat',
+      destination_main_image: '/images/destination-goa.jpg',
+      destination_image: '/images/destination-goa.jpg',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'Himalayan Adventure Base',
+      description: 'Mountain adventure destination offering trekking and outdoor team challenges',
+      destination_description: 'Mountain adventure destination offering trekking and outdoor team challenges',
+      region: 'Himachal Pradesh',
+      slug: 'himalayan-adventure-base',
+      destination_main_image: '/images/destination-himachal.jpg',
+      destination_image: '/images/destination-himachal.jpg',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      name: 'Kerala Backwaters',
+      description: 'Serene backwater destination ideal for peaceful team bonding and reflection',
+      destination_description: 'Serene backwater destination ideal for peaceful team bonding and reflection',
+      region: 'Kerala',
+      slug: 'kerala-backwaters',
+      destination_main_image: '/images/destination-kerala.jpg',
+      destination_image: '/images/destination-kerala.jpg',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  ];
+
   // Cache for website data
   const [websiteData, setWebsiteData] = useState<{
     activities: Activity[];
@@ -67,9 +113,14 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
     destinations: Destination[];
   }>({ activities: [], stays: [], destinations: [] });
 
+  // Update website data when hooks provide data
   useEffect(() => {
-    fetchWebsiteData();
-  }, []);
+    setWebsiteData({
+      activities: activities || [],
+      stays: stays || [],
+      destinations: destinations
+    });
+  }, [activities, stays]);
 
   useEffect(() => {
     if (websiteData.activities.length > 0 || websiteData.stays.length > 0) {
@@ -77,24 +128,13 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
     }
   }, [userProfile, currentActivityId, searchQuery, websiteData]);
 
-  const fetchWebsiteData = async () => {
-    try {
-      // Fetch real data from Supabase
-      const [activitiesRes, staysRes, destinationsRes] = await Promise.all([
-        supabase.from('activities').select('*').limit(50),
-        supabase.from('stays').select('*').limit(30),
-        supabase.from('destinations').select('*').limit(20)
-      ]);
-
-      setWebsiteData({
-        activities: activitiesRes.data || [],
-        stays: staysRes.data || [],
-        destinations: destinationsRes.data || []
-      });
-    } catch (error) {
-      console.error('Error fetching website data:', error);
+  // Set loading state based on hooks
+  useEffect(() => {
+    const isLoading = activitiesLoading || staysLoading;
+    if (!isLoading && (activities.length > 0 || stays.length > 0)) {
+      setLoading(false);
     }
-  };
+  }, [activitiesLoading, staysLoading, activities, stays]);
 
   const generateRecommendations = async () => {
     setLoading(true);

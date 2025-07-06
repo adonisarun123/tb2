@@ -138,26 +138,32 @@ function App() {
       }
     };
     
-    // Comprehensive global error handler for DOM removal errors
+    // Comprehensive global error handler for DOM removal errors and API errors
     const handleError = (event: ErrorEvent) => {
-      // Check if the error is related to DOM manipulation
+      // Check if the error is related to DOM manipulation or API issues
       if (
         event.message?.includes('removeChild') ||
         event.message?.includes('Failed to execute') ||
         event.message?.includes('is not a child of this node') ||
         event.message?.includes('NotFoundError') ||
-        event.message?.includes('remove()')
+        event.message?.includes('remove()') ||
+        event.message?.includes('Invalid API key') ||
+        event.message?.includes('API key') ||
+        event.message?.includes('Authentication failed') ||
+        event.message?.includes('Unauthorized')
       ) {
-        console.warn('DOM manipulation error caught and prevented:', event.message);
+        console.warn('Error caught and prevented:', event.message);
         
-        // Try to clean up any potentially problematic elements
-        try {
-          safeRemoveElementsBySelector('style[id^="font-optimization"]', 'Error handler');
-          safeRemoveElementsBySelector('script[data-loading-strategy]', 'Error handler');
-          safeRemoveElementsBySelector('.lazy-component-placeholder', 'Error handler');
-          safeRemoveElementsBySelector('[data-remove-if-unused]', 'Error handler');
-        } catch (cleanupError) {
-          console.warn('Error during cleanup:', cleanupError);
+        // Try to clean up any potentially problematic elements for DOM errors
+        if (event.message?.includes('removeChild') || event.message?.includes('remove()')) {
+          try {
+            safeRemoveElementsBySelector('style[id^="font-optimization"]', 'Error handler');
+            safeRemoveElementsBySelector('script[data-loading-strategy]', 'Error handler');
+            safeRemoveElementsBySelector('.lazy-component-placeholder', 'Error handler');
+            safeRemoveElementsBySelector('[data-remove-if-unused]', 'Error handler');
+          } catch (cleanupError) {
+            console.warn('Error during cleanup:', cleanupError);
+          }
         }
         
         // Prevent the error from bubbling up and crashing the app
@@ -170,13 +176,32 @@ function App() {
     // Enhanced error handler for unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const error = event.reason;
+      const errorMessage = error?.message || String(error);
+      
+      // Check for specific error patterns we want to suppress
       if (
         error?.message?.includes('removeChild') ||
         error?.message?.includes('Failed to execute') ||
         error?.message?.includes('is not a child of this node') ||
-        error?.message?.includes('NotFoundError')
+        error?.message?.includes('NotFoundError') ||
+        error?.message?.includes('Invalid API key') ||
+        error?.message?.includes('API key') ||
+        error?.message?.includes('Authentication failed') ||
+        error?.message?.includes('Unauthorized') ||
+        error?.code === 'PGRST301' ||
+        error?.code === 'PGRST100' ||
+        errorMessage.includes('Authentication failed') ||
+        errorMessage.includes('Invalid API key') ||
+        errorMessage.includes('API key')
       ) {
-        console.warn('Promise rejection for DOM error caught and prevented:', error.message);
+        console.warn('Promise rejection caught and prevented:', errorMessage);
+        event.preventDefault();
+        return false;
+      }
+      
+      // Log other promise rejections but don't prevent them unless they seem problematic
+      if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('timeout')) {
+        console.warn('Network-related promise rejection caught:', errorMessage);
         event.preventDefault();
         return false;
       }

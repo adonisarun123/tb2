@@ -11,19 +11,19 @@ import AIMetaTags from '../components/AIMetaTags';
 
 const BlogPage: React.FC = () => {
   const navigate = useNavigate();
-  const { posts, loading, error } = useSupabaseBlog();
+  const { blogPosts, loading, error } = useSupabaseBlog();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter posts based on search
   const filteredBlogs = useMemo(() => {
-    return posts.filter((blog: any) => {
+    return blogPosts.filter((blog: any) => {
       const matchesSearch = blog.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            blog.small_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            blog.post_body?.toLowerCase().includes(searchTerm.toLowerCase());
       
       return matchesSearch;
     });
-  }, [posts, searchTerm]);
+  }, [blogPosts, searchTerm]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -179,7 +179,7 @@ const BlogPage: React.FC = () => {
                 {/* Results count */}
                 <div className="mb-8">
                   <p className="text-gray-600">
-                    Showing {filteredBlogs.length} of {posts.length} articles
+                    Showing {filteredBlogs.length} of {blogPosts.length} articles
                   </p>
                 </div>
 
