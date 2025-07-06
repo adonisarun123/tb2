@@ -1,47 +1,49 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import viteImagemin from 'vite-plugin-imagemin'
-import imageminWebp from 'imagemin-webp'
-import imageminMozjpeg from 'imagemin-mozjpeg'
-import imageminPngquant from 'imagemin-pngquant'
-import imageminSvgo from 'imagemin-svgo'
-import imageminGifsicle from 'imagemin-gifsicle'
+// Temporarily disabled to fix Vercel build - @types/minimatch conflict
+// import viteImagemin from 'vite-plugin-imagemin'
+// import imageminWebp from 'imagemin-webp'
+// import imageminMozjpeg from 'imagemin-mozjpeg'
+// import imageminPngquant from 'imagemin-pngquant'
+// import imageminSvgo from 'imagemin-svgo'
+// import imageminGifsicle from 'imagemin-gifsicle'
 import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    // Image optimization plugin
-    viteImagemin({
-      gifsicle: {
-        optimizationLevel: 7,
-        interlaced: false,
-      },
-      mozjpeg: {
-        quality: 80,
-        progressive: true,
-      },
-      pngquant: {
-        quality: [0.65, 0.8],
-        speed: 4,
-      },
-      svgo: {
-        plugins: [
-          {
-            name: 'removeViewBox',
-            active: false,
-          },
-          {
-            name: 'removeEmptyAttrs',
-            active: false,
-          },
-        ],
-      },
-      webp: {
-        quality: 80,
-      },
-    }),
+    // Image optimization plugin - temporarily disabled to fix Vercel build
+    // TODO: Re-enable once @types/minimatch dependency issue is resolved
+    // viteImagemin({
+    //   gifsicle: {
+    //     optimizationLevel: 7,
+    //     interlaced: false,
+    //   },
+    //   mozjpeg: {
+    //     quality: 80,
+    //     progressive: true,
+    //   },
+    //   pngquant: {
+    //     quality: [0.65, 0.8],
+    //     speed: 4,
+    //   },
+    //   svgo: {
+    //     plugins: [
+    //       {
+    //         name: 'removeViewBox',
+    //         active: false,
+    //       },
+    //       {
+    //         name: 'removeEmptyAttrs',
+    //         active: false,
+    //       },
+    //     ],
+    //   },
+    //   webp: {
+    //     quality: 80,
+    //   },
+    // }),
   ],
   resolve: {
     alias: {

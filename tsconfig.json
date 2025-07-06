@@ -19,9 +19,12 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "ignoreDeprecations": "5.0",
+    "typeRoots": [],
+    "types": []
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "build"],
+  "include": ["src", "src/types/global.d.ts"],
+  "exclude": ["node_modules", "dist", "build", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
