@@ -104,8 +104,41 @@ function App() {
     };
   }, []);
   
-  // Comprehensive global error handler for DOM removal errors
+  // Comprehensive DOM manipulation safety patch
   useEffect(() => {
+    // Override native DOM methods to make them safe
+    const originalRemoveChild = Node.prototype.removeChild;
+    const originalRemove = Element.prototype.remove;
+    
+    // Safe removeChild override
+    Node.prototype.removeChild = function<T extends Node>(child: T): T {
+      try {
+        if (child && child.parentNode === this) {
+          return originalRemoveChild.call(this, child) as T;
+        } else {
+          console.warn('Safe DOM: Attempted to remove child that is not a child of this node');
+          return child;
+        }
+      } catch (error) {
+        console.warn('Safe DOM: removeChild failed safely:', error);
+        return child;
+      }
+    };
+    
+    // Safe remove override
+    Element.prototype.remove = function() {
+      try {
+        if (this.parentNode) {
+          return originalRemove.call(this);
+        } else {
+          console.warn('Safe DOM: Attempted to remove element without parent');
+        }
+      } catch (error) {
+        console.warn('Safe DOM: remove failed safely:', error);
+      }
+    };
+    
+    // Comprehensive global error handler for DOM removal errors
     const handleError = (event: ErrorEvent) => {
       // Check if the error is related to DOM manipulation
       if (
@@ -155,6 +188,10 @@ function App() {
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      
+      // Restore original methods
+      Node.prototype.removeChild = originalRemoveChild;
+      Element.prototype.remove = originalRemove;
     };
   }, []);
 
