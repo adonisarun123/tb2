@@ -1,5 +1,4 @@
 import React, { Suspense, lazy } from 'react';
-import { safeRemoveElementsBySelector } from '../../lib/domUtils';
 
 // Loading spinner component
 const LoadingSpinner: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -235,18 +234,11 @@ export const useConditionalPreload = () => {
 
     // Cleanup
     return () => {
-      try {
-        // Safely remove event listeners
-        events.forEach(event => {
-          document.removeEventListener(event, handleInteraction);
-        });
-        window.removeEventListener('scroll', handleScroll);
-        
-        // Safely clean up any stale loaders or placeholders
-        safeRemoveElementsBySelector('.lazy-component-placeholder', 'LazyComponents cleanup');
-      } catch (error) {
-        console.error('Error during LazyComponents cleanup:', error);
-      }
+      // Safely remove event listeners
+      events.forEach(event => {
+        document.removeEventListener(event, handleInteraction);
+      });
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [preloadOnInteraction, preloadFormsOnScroll]);
 };

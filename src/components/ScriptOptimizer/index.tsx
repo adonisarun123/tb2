@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { safeRemoveElementsBySelector } from '../../lib/domUtils';
 
 interface Script {
   src: string;
@@ -140,7 +139,10 @@ const ScriptOptimizer: React.FC<ScriptOptimizerProps> = ({ scripts, debug = fals
       });
       
       // Safely remove any script elements with our custom attribute that might cause issues
-      safeRemoveElementsBySelector('script[data-loading-strategy]');
+      const scriptElements = document.querySelectorAll('script[data-loading-strategy]');
+      scriptElements.forEach(script => {
+        script.remove();
+      });
     };
   }, [scripts, debug]);
   

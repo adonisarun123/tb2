@@ -15,7 +15,6 @@ import PerformanceMonitor from './components/PerformanceMonitor';
 // import FontOptimizer from './components/FontOptimizer';
 // import ScriptOptimizer from './components/ScriptOptimizer';
 import { useConditionalPreload, LazyAIRecommendations, LazyAIChatbot, LazySmartForm } from './components/LazyComponents';
-import { safeRemoveElementsBySelector } from './lib/domUtils';
 
 function App() {
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
@@ -96,114 +95,43 @@ function App() {
         document.removeEventListener('focusin', handleLinkHover);
         
         // Clean up any orphaned DOM elements that might cause issues
-        safeRemoveElementsBySelector('style[id^="font-optimization"]', 'App cleanup');
-        safeRemoveElementsBySelector('script[data-loading-strategy]', 'App cleanup');
+        // safeRemoveElementsBySelector('style[id^="font-optimization"]', 'App cleanup');
+        // safeRemoveElementsBySelector('script[data-loading-strategy]', 'App cleanup');
       } catch (error) {
         console.error('Error during App cleanup:', error);
       }
     };
   }, []);
   
-  // Comprehensive DOM manipulation safety patch
+  // SAFE error handling - no native method overrides
   useEffect(() => {
-    // Override native DOM methods to make them safe
-    const originalRemoveChild = Node.prototype.removeChild;
-    const originalRemove = Element.prototype.remove;
-    
-    // Safe removeChild override
-    Node.prototype.removeChild = function<T extends Node>(child: T): T {
-      try {
-        if (child && child.parentNode === this) {
-          return originalRemoveChild.call(this, child) as T;
-        } else {
-          console.warn('Safe DOM: Attempted to remove child that is not a child of this node');
-          return child;
-        }
-      } catch (error) {
-        console.warn('Safe DOM: removeChild failed safely:', error);
-        return child;
-      }
-    };
-    
-    // Safe remove override
-    Element.prototype.remove = function() {
-      try {
-        if (this.parentNode) {
-          return originalRemove.call(this);
-        } else {
-          console.warn('Safe DOM: Attempted to remove element without parent');
-        }
-      } catch (error) {
-        console.warn('Safe DOM: remove failed safely:', error);
-      }
-    };
-    
-    // Comprehensive global error handler for DOM removal errors and API errors
+    // Simple, safe error handlers that don't interfere with browser methods
     const handleError = (event: ErrorEvent) => {
-      // Check if the error is related to DOM manipulation or API issues
+      // Only handle specific errors we care about, don't prevent all errors
       if (
         event.message?.includes('removeChild') ||
-        event.message?.includes('Failed to execute') ||
-        event.message?.includes('is not a child of this node') ||
-        event.message?.includes('NotFoundError') ||
-        event.message?.includes('remove()') ||
         event.message?.includes('Invalid API key') ||
-        event.message?.includes('API key') ||
-        event.message?.includes('Authentication failed') ||
-        event.message?.includes('Unauthorized')
+        event.message?.includes('Authentication failed')
       ) {
-        console.warn('Error caught and prevented:', event.message);
-        
-        // Try to clean up any potentially problematic elements for DOM errors
-        if (event.message?.includes('removeChild') || event.message?.includes('remove()')) {
-          try {
-            safeRemoveElementsBySelector('style[id^="font-optimization"]', 'Error handler');
-            safeRemoveElementsBySelector('script[data-loading-strategy]', 'Error handler');
-            safeRemoveElementsBySelector('.lazy-component-placeholder', 'Error handler');
-            safeRemoveElementsBySelector('[data-remove-if-unused]', 'Error handler');
-          } catch (cleanupError) {
-            console.warn('Error during cleanup:', cleanupError);
-          }
-        }
-        
-        // Prevent the error from bubbling up and crashing the app
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
+        console.warn('Non-critical error handled:', event.message);
+        // Don't prevent the error - just log it
       }
     };
 
-    // Enhanced error handler for unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const error = event.reason;
       const errorMessage = error?.message || String(error);
       
-      // Check for specific error patterns we want to suppress
+      // Only handle API-related promise rejections
       if (
-        error?.message?.includes('removeChild') ||
-        error?.message?.includes('Failed to execute') ||
-        error?.message?.includes('is not a child of this node') ||
-        error?.message?.includes('NotFoundError') ||
-        error?.message?.includes('Invalid API key') ||
-        error?.message?.includes('API key') ||
-        error?.message?.includes('Authentication failed') ||
-        error?.message?.includes('Unauthorized') ||
-        error?.code === 'PGRST301' ||
-        error?.code === 'PGRST100' ||
-        errorMessage.includes('Authentication failed') ||
         errorMessage.includes('Invalid API key') ||
-        errorMessage.includes('API key')
+        errorMessage.includes('Authentication failed') ||
+        errorMessage.includes('API key') ||
+        error?.code === 'PGRST301' ||
+        error?.code === 'PGRST100'
       ) {
-        console.warn('Promise rejection caught and prevented:', errorMessage);
+        console.warn('API-related promise rejection handled:', errorMessage);
         event.preventDefault();
-        return false;
-      }
-      
-      // Log other promise rejections but don't prevent them unless they seem problematic
-      if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('timeout')) {
-        console.warn('Network-related promise rejection caught:', errorMessage);
-        event.preventDefault();
-        return false;
       }
     };
     
@@ -213,10 +141,6 @@ function App() {
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      
-      // Restore original methods
-      Node.prototype.removeChild = originalRemoveChild;
-      Element.prototype.remove = originalRemove;
     };
   }, []);
 

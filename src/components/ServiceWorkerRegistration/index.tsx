@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { safeRemoveElement } from '../../lib/domUtils';
 
 const ServiceWorkerRegistration = () => {
   useEffect(() => {
@@ -50,40 +49,24 @@ const ServiceWorkerRegistration = () => {
   };
 
   const showUpdateNotification = () => {
-    // Create a subtle notification about update
+    // Create a simple, safe notification without unsafe DOM operations
     const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #4f46e5;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 10000;
-      font-family: Inter, sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    `;
-    notification.textContent = 'New version available! Click to refresh.';
+    notification.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg z-50';
+    notification.textContent = 'App updated! Refresh to see changes.';
+    notification.style.zIndex = '9999';
     
-    notification.addEventListener('click', () => {
-      window.location.reload();
-    });
-
     document.body.appendChild(notification);
-
-    // Auto-remove after 10 seconds
+    
+    // Auto-remove after 5 seconds with safe cleanup
     setTimeout(() => {
-      if (notification.parentNode) {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-          safeRemoveElement(notification, 'service worker notification cleanup');
-        }, 300);
+      try {
+        if (notification && notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      } catch (error) {
+        // Silent failure - notification cleanup failed
       }
-    }, 10000);
+    }, 5000);
   };
 
   const sendPerformanceMetrics = (serviceWorker: ServiceWorker) => {

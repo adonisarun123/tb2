@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { safeRemoveElement } from '../../lib/domUtils';
+import { useEffect } from 'react';
 
 interface FontDefinition {
   family: string;
@@ -163,7 +162,9 @@ const FontOptimizer: React.FC<FontOptimizerProps> = ({
     // Clean up when component unmounts
     return () => {
       const styleElement = document.getElementById('font-optimization-styles');
-      safeRemoveElement(styleElement);
+      if (styleElement) {
+        styleElement.remove();
+      }
     };
   }, [fonts, enablePreloading, enableFallbackFonts, enableFontStyleOptimization]);
   
