@@ -692,7 +692,7 @@ Focus on items that best match "${searchQuery || 'team building'}" and provide h
                 src={getActivityImage(recommendation.name, recommendation.tags, recommendation.type)}
                 alt={recommendation.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
+
                 width={400}
                 height={200}
               />

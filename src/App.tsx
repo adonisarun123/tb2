@@ -9,7 +9,6 @@ import FeaturedActivities from './components/FeaturedActivities';
 import FeaturedStays from './components/FeaturedStays';
 import FeaturedBlog from './components/FeaturedBlog';
 import SchemaMarkup from './components/SchemaMarkup';
-import DataOptimizer from './lib/dataOptimizer';
 import PerformanceMonitor from './components/PerformanceMonitor';
 // Temporarily disabled to prevent DOM errors
 // import FontOptimizer from './components/FontOptimizer';
@@ -19,34 +18,24 @@ import { useConditionalPreload, LazyAIRecommendations, LazyAIChatbot, LazySmartF
 function App() {
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  // Using underscore prefix to indicate intentionally unused variable
-  const [_homepageData, setHomepageData] = useState<any>(null);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   
   // Use conditional preloading for better performance
   useConditionalPreload();
 
-  // Load critical data with optimized batching
+  // Simplified data loading with timeout and error handling
   useEffect(() => {
+    if (isDataLoaded) return; // Prevent multiple calls
+
     const loadCriticalData = async () => {
       try {
-        const startTime = performance.now();
-        
-        // Use data optimizer for efficient loading
-        const data = await DataOptimizer.preloadHomepageData();
-        
-        if (data) {
-          setHomepageData(data);
-        }
-        
-        const endTime = performance.now();
-        console.log(`✅ Critical data loaded in ${Math.round(endTime - startTime)}ms`);
-        
-        setIsDataLoaded(true);
+        setIsDataLoaded(true); // Set immediately to prevent re-runs
         
         // Mark page as loaded for CSS optimizations
         document.body.classList.add('data-loaded');
+        
+        console.log(`✅ Page loaded successfully`);
         
       } catch (error) {
         console.warn('Data loading failed, using fallback:', error);
@@ -54,11 +43,20 @@ function App() {
       }
     };
 
-    // Only load data once
-    if (!isDataLoaded) {
-      loadCriticalData();
-    }
-  }, [isDataLoaded]);
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      if (!isDataLoaded) {
+        console.warn('Data loading timeout, proceeding with fallback');
+        setIsDataLoaded(true);
+      }
+    }, 3000); // 3 second timeout
+
+    loadCriticalData();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, []); // Remove isDataLoaded dependency to prevent loops
 
   // Preload next page data on route hover/focus
   useEffect(() => {
@@ -74,11 +72,11 @@ function App() {
           requestIdleCallback(() => {
             // Preload specific data based on path
             if (path.includes('/activities')) {
-              DataOptimizer.getFeaturedActivities(12);
+              // DataOptimizer.getFeaturedActivities(12); // Removed DataOptimizer
             } else if (path.includes('/stays')) {
-              DataOptimizer.getFeaturedStays(9);
+              // DataOptimizer.getFeaturedStays(9); // Removed DataOptimizer
             } else if (path.includes('/blog')) {
-              DataOptimizer.getBlogPosts(10);
+              // DataOptimizer.getBlogPosts(10); // Removed DataOptimizer
             }
           });
         }

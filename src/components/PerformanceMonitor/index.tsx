@@ -313,15 +313,36 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     setTimeout(loadScripts, 5000);
   }, []);
 
-  // Initialize optimizations
+  // Simplified optimizations to prevent blocking
   useEffect(() => {
-    // Run optimizations with appropriate timing
-    optimizeCSSDelivery();
-    optimizeResourcePreloading();
-    collectMetrics();
-    optimizeDOM();
-    optimizeThirdPartyScripts();
-  }, [optimizeCSSDelivery, optimizeResourcePreloading, collectMetrics, optimizeDOM, optimizeThirdPartyScripts]);
+    // Only run one optimization at a time with delays
+    const runOptimizations = async () => {
+      // Wait for page to be fully loaded
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', runOptimizations, { once: true });
+        return;
+      }
+
+      // Run optimizations with delays to prevent blocking
+      setTimeout(() => {
+        if (enableCSSOptimization) optimizeCSSDelivery();
+      }, 100);
+
+      setTimeout(() => {
+        if (enableResourcePreloading) optimizeResourcePreloading();
+      }, 500);
+
+      setTimeout(() => {
+        if (enableMetrics) collectMetrics();
+      }, 1000);
+
+      // Skip DOM and script optimizations that might cause issues
+      // optimizeDOM();
+      // optimizeThirdPartyScripts();
+    };
+
+    runOptimizations();
+  }, [enableCSSOptimization, enableResourcePreloading, enableMetrics]);
 
   // Log metrics for debugging (development only)
   useEffect(() => {
